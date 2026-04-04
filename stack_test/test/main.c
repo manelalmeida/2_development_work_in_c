@@ -12,8 +12,8 @@ typedef struct {
 
 // protótipo das funções
 void handle_push(Stack *s, char *arg);
-void handle_pop(Stack *s);
-void handle_top(Stack *s);
+void handle_pop(Stack *s, char *arg);
+void handle_top(Stack *s, char *arg);
 
 // Implementação das funções
 void handle_push(Stack *s, char *arg) {
@@ -24,16 +24,17 @@ void handle_push(Stack *s, char *arg) {
         return;
 }
 // transformar o argumento de uma string para um inteiro
-    int value = atoi(arg);push(s, value);
+    int value = atoi(arg);
+    push(s, value);
 }
 
-void handle_pop(Stack *s) {
+void handle_pop(Stack *s, char *arg) {
 // nada por preprocessar, chamamos directamente
 // a função associada
     pop(s);
 }
 
-void handle_top(Stack *s) {
+void handle_top(Stack *s, char *arg) {
 // nada por preprocessar, chamamos directamente
 // a função associada
     top(s);
@@ -44,7 +45,7 @@ Command commands[] = {
 
     {"push", handle_push},
     {"pop", handle_pop},
-    {"top", handle_pop}
+    {"top", handle_top}
 };
 // uma macro para assinalar o número de elementos no vector
 //commands: tamanho do vetor na sua globalidade dividida pelo
@@ -81,12 +82,11 @@ int main() {
         for (int i = 0; i < COMMAND_COUNT; i++) {
             
             if (strcmp(command, commands[i].name) == 0) {
-// Encontrei! O comando está na lista!
-// COMPLETAR!
-// ---> executar a respectiva função com o
-// rspectivo argumento (args)
-// ....
+                
                 found = 1; // assinalar que o comando foi encontrado
+                
+                commands[i].func(&stack , arg);
+
                 break;
             }
         }

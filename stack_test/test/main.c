@@ -79,7 +79,7 @@ int main() {
 // Procura o comando na lista de funções possíveis
     int found = 0;
         
-        for (int i = 0; i < COMMAND_COUNT; i++) {
+        for (size_t i = 0; i < COMMAND_COUNT; i++) {
             
             if (strcmp(command, commands[i].name) == 0) {
                 

@@ -80,45 +80,45 @@ dynvec* dynvec_filter(dynvec *v, bool (*predicate)(void *)) {
 
 void swap(void *a, void *b, size_t size) {
     char temp[size];
-    memcpy(temp, a, size);
+    memcpy(temp, a, size);      
     memcpy(a, b, size);
     memcpy(b, temp, size);
 }
 
-int partition(dynvec *v, int low, int high, int (*cmp)(const void *, const void *)) {
+int partition(dynvec *v, int menor, int maior, int (*cmp)(const void *, const void *)) {
 
     char *base = (char *)v->data;
     size_t size = v->elem_size;
 
-    void *pivot = base + high * size;
+    void *pivot = base + maior * size;
 
-    int i = low - 1;
+    int indice = menor - 1;
 
-    for (int j = low; j < high; j++) {
+    for (int j = menor; j < maior; j++) {
 
         void *elem_j = base + j * size;
 
         if (cmp(elem_j, pivot) < 0) {
-            i++;
-            void *elem_i = base + i * size;
+            indice++;
+            void *elem_i = base + indice * size;   // lado dos menores que o pivo
             swap(elem_i, elem_j, size);
         }
     }
 
-    void *elem_i1 = base + (i + 1) * size;
+    void *elem_i1 = base + (indice + 1) * size;
     swap(elem_i1, pivot, size);
 
-    return i + 1;
+    return indice + 1;
 }
 
-void quicksort_rec(dynvec *v, int low, int high, int (*cmp)(const void *, const void *)) {
+void quicksort_rec(dynvec *v, int menor, int maior, int (*cmp)(const void *, const void *)) {
 
-    if (low < high) {
+    if (menor < maior) {
 
-        int pi = partition(v, low, high, cmp);
+        int pi = partition(v, menor, maior, cmp);
 
-        quicksort_rec(v, low, pi - 1, cmp);
-        quicksort_rec(v, pi + 1, high, cmp);
+        quicksort_rec(v, menor, pi - 1, cmp);
+        quicksort_rec(v, pi + 1, maior, cmp);
     }
 }
 
@@ -131,6 +131,13 @@ void quicksort_dynvec(dynvec *v, int (*cmp)(const void *, const void *)){
 
 int cmp_lexicografico(const void *a, const void *b){
 
+    const Ponto *pa = (const Ponto *)a;
+    const Ponto *pb = (const Ponto *)b;
+    
+    if (pa->x != pb->x) {
+        return pa->x - pb->x;
+    }
+    return pa->y - pb->y;
 }
 
 typedef struct {
@@ -147,6 +154,7 @@ typedef struct {
 
 int calcula_det(Ponto A, Ponto B, Ponto P){
 
+    return (B.x - A.x) * (P.y - A.y) - (B.y - A.y) * (P.x - A.x);
 }
 
 void processa_regiao(Ponto A, Ponto B, dynvec *candidatos, dynvec *arestas_finais){

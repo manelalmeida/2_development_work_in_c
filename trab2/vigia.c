@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 #include <stdbool.h>
+#include <math.h>
 
 typedef struct Dynvec {
     
@@ -11,6 +11,18 @@ typedef struct Dynvec {
     size_t capacity;
     size_t elem_size;
 }dynvec;
+
+typedef struct {
+    
+    int x;
+    int y;
+} Ponto;
+
+typedef struct {
+    
+    Ponto p1;
+    Ponto p2;
+} Aresta;
 
 static void dynvec_resize(dynvec *v, size_t new_capacity) {
     
@@ -140,18 +152,6 @@ int cmp_lexicografico(const void *a, const void *b){
     return pa->y - pb->y;
 }
 
-typedef struct {
-    
-    int x;
-    int y;
-} Ponto;
-
-typedef struct {
-    
-    Ponto p1;
-    Ponto p2;
-} Aresta;
-
 int calcula_det(Ponto A, Ponto B, Ponto P){
 
     return (B.x - A.x) * (P.y - A.y) - (B.y - A.y) * (P.x - A.x);
@@ -159,13 +159,96 @@ int calcula_det(Ponto A, Ponto B, Ponto P){
 
 void processa_regiao(Ponto A, Ponto B, dynvec *candidatos, dynvec *arestas_finais){
 
+     int    maior_det = 0;
+    Ponto *melhor    = NULL;
+ 
+    for (size_t i = 0; i < dynvec_length(candidatos); i++) {
+        Ponto *P   = (Ponto *)dynvec_get(candidatos, i);
+        int    det = calcula_det(A, B, *P);
+        if (det > maior_det ||
+            (det == maior_det && melhor != NULL &&
+             cmp_lexicografico(P, melhor) < 0)) {
+            maior_det = det;
+            melhor    = P;
+        }
+    }
+
+    if (melhor == NULL) {
+        Aresta e = { A, B };
+        dynvec_push(arestas_finais, &e);
+        return;
+    }
+ 
+    Ponto C = *melhor;
+ 
+    dynvec *candid_AC = dynvec_create(sizeof(Ponto));
+    dynvec *candid_CB = dynvec_create(sizeof(Ponto));
+ 
+    for (size_t i = 0; i < dynvec_length(candidatos); i++) {
+        Ponto *P = (Ponto *)dynvec_get(candidatos, i);
+        if (calcula_det(A, C, *P) > 0) dynvec_push(candid_AC, P);
+        if (calcula_det(C, B, *P) > 0) dynvec_push(candid_CB, P);
+    }
+
+    processa_regiao(A, C, candid_AC, arestas_finais);
+    processa_regiao(C, B, candid_CB, arestas_finais);
+ 
+    dynvec_free(candid_AC);
+    dynvec_free(candid_CB);
 }
 
 int main(){
 
     dynvec *v = dynvec_create(sizeof(Ponto));
 
+    Ponto p;
+    while (scanf("%d %d", &p.x, &p.y) == 2){
+        dynvec_push(v, &p);
+    }
+
     quicksort_dynvec(v, cmp_lexicografico);
+
+    for (size_t i = 0; i < dynvec_length(v); i++) {
+        Ponto *pt = (Ponto *)dynvec_get(v, i);
+        printf("%d %d\n", pt->x, pt->y);
+    }
+
+    size_t n = dynvec_length(v);
+    Ponto  A = *(Ponto *)dynvec_get(v, 0);
+    Ponto  B = *(Ponto *)dynvec_get(v, n - 1);
+ 
+    dynvec *arestas_finais  = dynvec_create(sizeof(Aresta));
+    dynvec *candidatos_cima = dynvec_create(sizeof(Ponto));
+    dynvec *candidatos_baixo= dynvec_create(sizeof(Ponto));
+
+    for (size_t i = 0; i < n; i++) {
+        Ponto *P = (Ponto *)dynvec_get(v, i);
+        int detAB = calcula_det(A, B, *P);
+        int detBA = calcula_det(B, A, *P);
+        if (detAB > 0) dynvec_push(candidatos_cima,  P);
+        if (detBA > 0) dynvec_push(candidatos_baixo, P);
+    }
+
+    processa_regiao(A, B, candidatos_cima,  arestas_finais);
+    processa_regiao(B, A, candidatos_baixo, arestas_finais);
+ 
+    size_t E = dynvec_length(arestas_finais);
+    printf("%zu\n", E);
+ 
+    double perimetro = 0.0;
+    for (size_t i = 0; i < E; i++) {
+        Aresta *e = (Aresta *)dynvec_get(arestas_finais, i);
+        printf("%d %d %d %d\n", e->p1.x, e->p1.y, e->p2.x, e->p2.y);
+        double dx = e->p2.x - e->p1.x;
+        double dy = e->p2.y - e->p1.y;
+        perimetro += sqrt(dx * dx + dy * dy);
+    }
+
+    printf("%.2f\n", perimetro);
+ 
+    dynvec_free(candidatos_cima);
+    dynvec_free(candidatos_baixo);
+    dynvec_free(arestas_finais);
 
     dynvec_free(v);
     return 0;

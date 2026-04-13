@@ -77,19 +77,6 @@ void dynvec_free(dynvec *v) {
     }
 }
 
-dynvec* dynvec_filter(dynvec *v, bool (*predicate)(void *)) {
-    
-    dynvec *novo = dynvec_create(v->elem_size);
-    
-    for (size_t i = 0; i < v->length; i++) {
-        void *item = dynvec_get(v, i);
-            if (predicate(item)){ 
-            dynvec_push(novo, item);
-            }
-    }
-    return novo;
-}
-
 void swap(void *a, void *b, size_t size) {
     char temp[size];
     memcpy(temp, a, size);      

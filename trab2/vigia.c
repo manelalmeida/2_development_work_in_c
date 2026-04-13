@@ -236,7 +236,6 @@ int main(){
     dynvec_free(candidatos_cima);
     dynvec_free(candidatos_baixo);
     dynvec_free(arestas_finais);
-
     dynvec_free(v);
     return 0;
 }
